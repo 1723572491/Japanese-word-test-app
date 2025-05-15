@@ -1,16 +1,19 @@
-from tkinter import Toplevel, messagebox
-from ttkbootstrap.widgets import Button, Label, Frame
-from ttkbootstrap import Style
+
+import tkinter as tk
+from tkinter import filedialog, messagebox
+import threading
+import numpy as np
 from word_test_app.core.audio import AudioPlayer
+from word_test_app.core.word_test import WordTest
 from word_test_app.ui.widgets import create_button
 from word_test_app.ui.word_navigation import WordNavigation
 from word_test_app.ui.word_actions import WordActions
 from word_test_app.ui.pronunciation import Pronunciation
-import numpy as np
 
-class WordTestGUI(Toplevel):
-    def __init__(self, master, word_test):
-        super().__init__(master)  # ✅ 挂靠主窗口
+
+class WordTestGUI(tk.Tk):
+    def __init__(self, word_test):
+        super().__init__()
         self.word_test = word_test
         self.audio_player = AudioPlayer()
         self.to_exclude = set()
@@ -18,36 +21,36 @@ class WordTestGUI(Toplevel):
 
         self.pronunciation = Pronunciation(self)
 
-        self.dynamic_style = Style()
-        self.dynamic_style.configure("Dynamic.TButton", font=("Helvetica", 14, "bold"))
         self.configure_ui()
         self.random_words = self.generate_random_words()
         self.show_word()
 
+        # 绑定窗口变化事件用于自适应字体
         self.bind("<Configure>", self.on_resize)
 
     def configure_ui(self):
         self.title("日语单词记忆")
         self.state("zoomed")
-        self.configure(padx=20, pady=20)
+        self.config(bg="#eaeaea")
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
-        main_frame = Frame(self)
+        main_frame = tk.Frame(self, bg="#eaeaea")
         main_frame.grid(row=0, column=0, sticky="nsew")
 
         main_frame.grid_rowconfigure(0, weight=1)
         main_frame.grid_columnconfigure(0, weight=1)
 
-        content_frame = Frame(main_frame)
+        content_frame = tk.Frame(main_frame, bg="#eaeaea")
         content_frame.grid(row=0, column=0)
 
-        self.word_frame = Frame(content_frame)
+        self.word_frame = tk.Frame(content_frame, bg="#eaeaea")
         self.word_frame.pack(pady=30)
 
-        self.word_label = Label(
-            self.word_frame, text="", font=("Helvetica", 36, "bold")
+        self.word_label = tk.Label(
+            self.word_frame, text="", font=("Helvetica", 36, "bold"),
+            bg="#eaeaea", fg="#222"
         )
         self.word_label.pack(side="left")
 
@@ -56,16 +59,16 @@ class WordTestGUI(Toplevel):
         )
         self.pronounce_button.pack(side="left", padx=10)
 
-        self.meaning_label = Label(
+        self.meaning_label = tk.Label(
             content_frame, text="", font=("Helvetica", 18),
-            wraplength=800, justify="center"
+            fg="#444", bg="#eaeaea", wraplength=800, justify="center"
         )
         self.meaning_label.pack(pady=10)
 
-        self.button_frame_top = Frame(content_frame)
+        self.button_frame_top = tk.Frame(content_frame, bg="#eaeaea")
         self.button_frame_top.pack(pady=10)
 
-        self.button_frame_bottom = Frame(content_frame)
+        self.button_frame_bottom = tk.Frame(content_frame, bg="#eaeaea")
         self.button_frame_bottom.pack(pady=10)
 
         WordNavigation(self.button_frame_top, self)
@@ -73,22 +76,23 @@ class WordTestGUI(Toplevel):
 
     def on_resize(self, event):
         width = self.winfo_width()
-
-        word_font_size = max(28, int(width * 0.05))
-        meaning_font_size = max(14, int(width * 0.02))
-        button_font_size = max(10, int(width * 0.017))
-        button_width = max(10, int(width / 90))
+        word_font_size = max(20, int(width * 0.04))
+        meaning_font_size = max(12, int(width * 0.018))
+        button_font_size = max(10, int(width * 0.015))
+        button_width = max(8, int(width * 0.01))
 
         self.word_label.config(font=("Helvetica", word_font_size, "bold"))
         self.meaning_label.config(font=("Helvetica", meaning_font_size))
 
-        style = Style()
-        style.configure("Dynamic.TButton", font=("Helvetica", button_font_size, "bold"))
+        self.pronounce_button.config(
+            font=("Helvetica", button_font_size, "bold"),
+            width=button_width
+        )
 
         def update_buttons(frame):
             for child in frame.winfo_children():
-                if isinstance(child, Button):
-                    child.config(style="Dynamic.TButton", width=button_width)
+                if isinstance(child, tk.Button):
+                    child.config(font=("Helvetica", button_font_size, "bold"), width=button_width)
 
         update_buttons(self.button_frame_top)
         update_buttons(self.button_frame_bottom)

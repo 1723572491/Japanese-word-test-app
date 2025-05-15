@@ -25,7 +25,7 @@ class WordActions:
         current_index = self.main_window.word_test.history[self.main_window.word_test.current_index]
         row = self.main_window.word_test.data.iloc[current_index]
         self.main_window.meaning_label.config(
-            text=f"{row[1]};            {row[2]};            {row[3]}"
+            text=f"{row[1]};{row[2]};{row[3]}"
         )
 
     def switch_word_list(self):
